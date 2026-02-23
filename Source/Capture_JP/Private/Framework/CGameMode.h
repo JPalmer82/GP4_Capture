@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
+#include "GenericTeamAgentInterface.h"
 #include "CGameMode.generated.h"
 
 /**
@@ -14,4 +15,9 @@ class ACGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
 	
+public:
+	virtual APlayerController* SpawnPlayerController(ENetRole InRemoteRole, const FString& Options) override;
+
+private:
+	FGenericTeamId GetTeamIdForPlayer(const APlayerController* PlayerController);
 };

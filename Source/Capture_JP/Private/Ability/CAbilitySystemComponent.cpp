@@ -48,6 +48,11 @@ void UCAbilitySystemComponent::AuthApplyGameplayEffect(const TSubclassOf<UGamepl
 	}
 }
 
+void UCAbilitySystemComponent::ApplyFullStatEffect()
+{
+	AuthApplyGameplayEffect(FullStatEffect);
+}
+
 void UCAbilitySystemComponent::HealthUpdated(const FOnAttributeChangeData& ChangeData)
 {
 	if (ChangeData.NewValue == 0)

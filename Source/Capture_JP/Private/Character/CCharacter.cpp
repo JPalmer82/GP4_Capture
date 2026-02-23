@@ -5,6 +5,7 @@
 
 #include "Ability/CAbilitySystemComponent.h"
 #include "Ability/CAttributeSet.h"
+#include "Ability/CGameplayTypes.h"
 
 #include "Components/CapsuleComponent.h"
 #include "Components/WidgetComponent.h"
@@ -12,6 +13,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 
 #include "Widgets/OverheadStatusGauge.h"
+#include "Net/UnrealNetwork.h"
 
 // Sets default values
 ACCharacter::ACCharacter()
@@ -32,6 +34,8 @@ ACCharacter::ACCharacter()
 
 	OverheadWidgetComponent = CreateDefaultSubobject<UWidgetComponent>("OverheadWidgetComponent");
 	OverheadWidgetComponent->SetupAttachment(GetRootComponent());
+
+	BindGameplayTagChangeEvents();
 }
 
 void ACCharacter::ServerSideInit()
@@ -46,6 +50,12 @@ void ACCharacter::ClientSideInit()
 	CAbilitySystemComponent->InitAbilityActorInfo(this, this);
 }
 
+void ACCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(ACCharacter, TeamId);
+}
+
 // Called when the game starts or when spawned
 void ACCharacter::BeginPlay()
 {
@@ -56,6 +66,8 @@ void ACCharacter::BeginPlay()
 	{
 		ServerSideInit();
 	}
+	//gets the information of the character's mesh for later use in turning ragdoll off 
+	MeshRelativeTransform = GetMesh()->GetRelativeTransform();
 }
 
 // Called every frame
@@ -77,6 +89,83 @@ UAbilitySystemComponent* ACCharacter::GetAbilitySystemComponent() const
 	return CAbilitySystemComponent;
 }
 
+void ACCharacter::BindGameplayTagChangeEvents()
+{
+	GetAbilitySystemComponent()->RegisterGameplayTagEvent(TAG_STAT_Dead).AddUObject(this, &ACCharacter::DeathTagChanged);
+}
+
+void ACCharacter::DeathTagChanged(const FGameplayTag Tag, int32 NewCount)
+{
+	if (NewCount != 0)
+	{
+		StartDeathSequence();
+	}
+	else
+	{
+		Respawn();
+	}
+}
+
+bool ACCharacter::IsCharacterDead() const
+{
+	return GetAbilitySystemComponent()->HasAllMatchingGameplayTags(FGameplayTagContainer(TAG_STAT_Dead));
+}
+
+void ACCharacter::StartDeathSequence()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Starting Death Sequence"))
+	PlayDeathMontage();
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+	SetOverheadWidgetEnabled(false);
+	GetAbilitySystemComponent()->CancelAllAbilities();
+}
+
+void ACCharacter::Respawn()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Respawning"))
+	OnRespawn();
+	SetOverheadWidgetEnabled(true);
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+	GetMesh()->GetAnimInstance()->StopAllMontages(0.0f);
+	CAbilitySystemComponent->ApplyFullStatEffect();
+	SetEnableRagdoll(false);
+}
+
+void ACCharacter::PlayDeathMontage()
+{
+	float MontageDuration = PlayAnimMontage(DeathMontage);
+	GetWorldTimerManager().SetTimer(DeathAnimationFinishedTimerHandle, this, &ACCharacter::DeathAnimationFinished,
+		MontageDuration + DeathAnimationDurationOffset
+		);
+}
+
+void ACCharacter::SetEnableRagdoll(bool bEnableRagdoll)
+{
+	if (bEnableRagdoll)
+	{
+		GetMesh()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+		GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+		GetMesh()->SetSimulatePhysics(true);
+	}
+	else
+	{
+		GetMesh()->SetSimulatePhysics(false);
+		GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		GetMesh()->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+		GetMesh()->SetRelativeTransform(MeshRelativeTransform);
+	}
+}
+
+void ACCharacter::DeathAnimationFinished()
+{
+	if (IsCharacterDead())
+	{
+		SetEnableRagdoll(true);
+	}
+}
+
 void ACCharacter::InitializeOverheadWidget()
 {
 	if (GetController() && GetController()->IsPlayerController())
@@ -91,5 +180,16 @@ void ACCharacter::InitializeOverheadWidget()
 		StatusGauge->SetOwningAbilitySystemComponent(GetAbilitySystemComponent());
 		OverheadWidgetComponent->SetVisibility(true);
 	}
+}
+
+void ACCharacter::SetOverheadWidgetEnabled(bool bWidgetEnabled)
+{
+	OverheadWidgetComponent->SetHiddenInGame(!bWidgetEnabled);
+}
+
+void ACCharacter::SetGenericTeamId(const FGenericTeamId& NewTeamID)
+{
+	TeamId = NewTeamID;
+	UE_LOG(LogTemp, Warning, TEXT("Team Id is set to: %d"), TeamId.GetId())
 }
 

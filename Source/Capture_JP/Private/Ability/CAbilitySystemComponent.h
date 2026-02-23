@@ -20,10 +20,14 @@ public:
 	void ApplyInitialEffects();
 	void GiveInitialAbilities();
 	void AuthApplyGameplayEffect(const TSubclassOf<UGameplayEffect>& EffectToApply);
+	void ApplyFullStatEffect();
 
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "GameplayEffects")
 	TSubclassOf<UGameplayEffect> DeathEffect;
+
+	UPROPERTY(EditDefaultsOnly, Category = "GameplayEffects")
+	TSubclassOf<UGameplayEffect> FullStatEffect;
 
 	UPROPERTY(EditDefaultsOnly, Category = "GameplayEffects")
 	TArray<TSubclassOf<UGameplayEffect>> InitialEffects;

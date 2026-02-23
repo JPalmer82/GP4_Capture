@@ -83,6 +83,11 @@ void ACPlayerCharacter::HandleLookInput(const FInputActionValue& InputActionValu
 
 void ACPlayerCharacter::HandleAbilityInput(const FInputActionValue& InputActionValue, ECAbilityInputID AbilityInputID)
 {
+	if (IsCharacterDead())
+	{
+		return;
+	}
+
 	bool bPressed = InputActionValue.Get<bool>();
 	if (bPressed)
 	{
@@ -92,4 +97,14 @@ void ACPlayerCharacter::HandleAbilityInput(const FInputActionValue& InputActionV
 	{
 		GetAbilitySystemComponent()->AbilityLocalInputReleased((int32)AbilityInputID);
 	}
+}
+
+void ACPlayerCharacter::OnDead()
+{
+	//GetAbilitySystemComponent()->CancelAllAbilities();
+}
+
+void ACPlayerCharacter::OnRespawn()
+{
+
 }

@@ -55,4 +55,7 @@ private:
 	void HandleLookInput(const struct FInputActionValue& InputActionValue);
 
 	void HandleAbilityInput(const struct FInputActionValue& InputActionValue, ECAbilityInputID AbilityInputID);
+
+	virtual void OnDead() override;
+	virtual void OnRespawn() override;
 };

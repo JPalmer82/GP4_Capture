@@ -26,7 +26,7 @@ public:
 		ATTRIBUTE_ACCESSORS(UCAttributeSet, Mana)
 		ATTRIBUTE_ACCESSORS(UCAttributeSet, MaxMana)
 
-		virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
 	/**
 	 *	Called just before any modification happens to an attribute. This is lower level than PreAttributeModify/PostAttribute modify.
