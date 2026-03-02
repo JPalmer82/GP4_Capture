@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
+#include "GenericTeamAgentInterface.h"
 #include "CGameplayAbility.generated.h"
 
 /**
@@ -17,7 +18,7 @@ protected:
 	class UAnimInstance* GetOwnerAnimInst() const;
 
 	TArray<FHitResult> GetHitResultFromTargetData(const FGameplayAbilityTargetDataHandle& TargetDataHandle, 
-		float DetectionRadius, bool bIgnoreSelf = true, bool bDrawDebug = true) const;
+		float DetectionRadius, bool bIgnoreSelf = true, ETeamAttitude::Type TargetTeamAttitude = ETeamAttitude::Hostile, bool bDrawDebug = true) const;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Debug")
 	bool bShouldDrawDebug = false;

@@ -8,6 +8,7 @@
 #include "Abilities/Tasks/AbilityTask_WaitInputPress.h"
 #include "GameplayTagsManager.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "GenericTeamAgentInterface.h"
 
 UGA_Combo::UGA_Combo()
 {
@@ -91,7 +92,9 @@ void UGA_Combo::HandleComboChange(FGameplayEventData EventData)
 void UGA_Combo::HandleDamageEvent(FGameplayEventData EventData)
 {
 	//UE_LOG(LogTemp, Warning, TEXT("Doing Damage starting at %s"), *(EventData.TargetData.Get(0)->GetOrigin().GetLocation().ToString()))
-	TArray<FHitResult> Targets = GetHitResultFromTargetData(EventData.TargetData, DamageDetectionRadius, true, bShouldDrawDebug);
+	TArray<FHitResult> Targets = GetHitResultFromTargetData(EventData.TargetData, DamageDetectionRadius, true, ETeamAttitude::Hostile, bShouldDrawDebug);
+
+
 	for (const FHitResult& Target : Targets)
 	{
 		FGameplayEffectSpecHandle DamageEffectSpec = 

@@ -2,6 +2,8 @@
 
 
 #include "Framework/CGameMode.h"
+#include "GameFramework/PlayerStart.h"
+#include "EngineUtils.h"
 
 APlayerController* ACGameMode::SpawnPlayerController(ENetRole InRemoteRole, const FString& Options)
 {
@@ -15,6 +17,7 @@ APlayerController* ACGameMode::SpawnPlayerController(ENetRole InRemoteRole, cons
 		NewPlayerTeamInterface->SetGenericTeamId(TeamId);
 	}
 
+	NewPlayerController->StartSpot = GetStartSpotForTeam(TeamId);
 	return NewPlayerController;
 }
 
@@ -23,4 +26,25 @@ FGenericTeamId ACGameMode::GetTeamIdForPlayer(const APlayerController* PlayerCon
 	static int TeamId = 0;
 	++TeamId;
 	return FGenericTeamId(TeamId % 2);
+}
+
+AActor* ACGameMode::GetStartSpotForTeam(FGenericTeamId TeamId) const
+{
+	const FName* TeamPlayerStartTag = TeamStartSpotTagMap.Find(TeamId);
+	if (!TeamPlayerStartTag)
+	{
+		return nullptr;
+	}
+
+	for (TActorIterator<APlayerStart> Iter(GetWorld()); Iter; ++Iter)
+	{
+		APlayerStart* PlayerStartActor = *Iter;
+		if (PlayerStartActor->PlayerStartTag == *TeamPlayerStartTag)
+		{
+			PlayerStartActor->PlayerStartTag = "Taken";
+			return *Iter;
+		}
+	}
+
+	return nullptr;
 }

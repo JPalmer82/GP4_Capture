@@ -17,7 +17,7 @@ UAnimInstance* UCGameplayAbility::GetOwnerAnimInst() const
 	return OwnerSkeletalMesh->GetAnimInstance();
 }
 
-TArray<FHitResult> UCGameplayAbility::GetHitResultFromTargetData(const FGameplayAbilityTargetDataHandle& TargetDataHandle, float DetectionRadius, bool bIgnoreSelf, bool bDrawDebug) const
+TArray<FHitResult> UCGameplayAbility::GetHitResultFromTargetData(const FGameplayAbilityTargetDataHandle& TargetDataHandle, float DetectionRadius, bool bIgnoreSelf, ETeamAttitude::Type TargetTeamAttitude, bool bDrawDebug) const
 {
 	TArray<FHitResult> OutResult;
 	TSet<AActor*> AlreadyDetectedActors;
@@ -32,6 +32,8 @@ TArray<FHitResult> UCGameplayAbility::GetHitResultFromTargetData(const FGameplay
 	}
 
 	EDrawDebugTrace::Type DebugTrackType = bDrawDebug ? EDrawDebugTrace::ForDuration : EDrawDebugTrace::None;
+
+	IGenericTeamAgentInterface* AvatarTeamInterface = Cast<IGenericTeamAgentInterface>(GetAvatarActorFromActorInfo());
 
 	for (const TSharedPtr<FGameplayAbilityTargetData>& TargetData : TargetDataHandle.Data)
 	{
@@ -48,7 +50,12 @@ TArray<FHitResult> UCGameplayAbility::GetHitResultFromTargetData(const FGameplay
 			{
 				continue;
 			}
-			OutResult.Add(HitResult);
+
+			if (AvatarTeamInterface && AvatarTeamInterface->GetTeamAttitudeTowards(*HitResult.GetActor()) == TargetTeamAttitude)
+			{
+				OutResult.Add(HitResult);
+			}
+
 			AlreadyDetectedActors.Add(HitResult.GetActor());
 		}
 	}

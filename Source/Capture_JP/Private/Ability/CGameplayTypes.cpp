@@ -15,3 +15,4 @@ UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_Combo_Change_Combo04, "ability.combo.change.c
 UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_Combo_Change_End, "ability.combo.change.end", "tag to tell combo ability no more combo next after this point");
 
 UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_STAT_Dead, "stat.dead", "tag added when player is dead")
+UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_STAT_Invisible, "stat.invisible", "tag added to make character not be perceived by AI")

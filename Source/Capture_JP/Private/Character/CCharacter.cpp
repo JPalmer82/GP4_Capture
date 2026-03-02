@@ -10,6 +10,9 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/WidgetComponent.h"
 
+#include "Perception/AIPerceptionStimuliSourceComponent.h"
+#include "Perception/AISense_Sight.h"
+
 #include "GameFramework/CharacterMovementComponent.h"
 
 #include "Widgets/OverheadStatusGauge.h"
@@ -36,6 +39,8 @@ ACCharacter::ACCharacter()
 	OverheadWidgetComponent->SetupAttachment(GetRootComponent());
 
 	BindGameplayTagChangeEvents();
+
+	PerceptionStimulusComponent = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>("PerceptionStimulusComponent");
 }
 
 void ACCharacter::ServerSideInit()
@@ -68,6 +73,8 @@ void ACCharacter::BeginPlay()
 	}
 	//gets the information of the character's mesh for later use in turning ragdoll off 
 	MeshRelativeTransform = GetMesh()->GetRelativeTransform();
+
+	PerceptionStimulusComponent->RegisterForSense(UAISense_Sight::StaticClass());
 }
 
 // Called every frame
@@ -119,6 +126,7 @@ void ACCharacter::StartDeathSequence()
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 	SetOverheadWidgetEnabled(false);
 	GetAbilitySystemComponent()->CancelAllAbilities();
+	SetPerceptionStimuliEnabled(false);
 }
 
 void ACCharacter::Respawn()
@@ -129,8 +137,16 @@ void ACCharacter::Respawn()
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 	GetMesh()->GetAnimInstance()->StopAllMontages(0.0f);
-	CAbilitySystemComponent->ApplyFullStatEffect();
 	SetEnableRagdoll(false);
+	CAbilitySystemComponent->ApplyFullStatEffect();
+	SetPerceptionStimuliEnabled(true);
+
+	AController* OwningController = GetController();
+	if (OwningController && OwningController->StartSpot.IsValid())
+	{
+		SetActorLocation(OwningController->StartSpot->GetActorLocation());
+		SetActorRotation(OwningController->StartSpot->GetActorRotation());
+	}
 }
 
 void ACCharacter::PlayDeathMontage()
@@ -191,5 +207,17 @@ void ACCharacter::SetGenericTeamId(const FGenericTeamId& NewTeamID)
 {
 	TeamId = NewTeamID;
 	UE_LOG(LogTemp, Warning, TEXT("Team Id is set to: %d"), TeamId.GetId())
+}
+
+void ACCharacter::SetPerceptionStimuliEnabled(bool bStimuliEnabled)
+{
+	if (bStimuliEnabled)
+	{
+		PerceptionStimulusComponent->RegisterWithPerceptionSystem();
+	}
+	else
+	{
+		PerceptionStimulusComponent->UnregisterFromPerceptionSystem();
+	}
 }
 

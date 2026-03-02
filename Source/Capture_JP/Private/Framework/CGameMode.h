@@ -20,4 +20,9 @@ public:
 
 private:
 	FGenericTeamId GetTeamIdForPlayer(const APlayerController* PlayerController);
+
+	AActor* GetStartSpotForTeam(FGenericTeamId TeamId) const;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Team")
+	TMap<FGenericTeamId, FName> TeamStartSpotTagMap;
 };
