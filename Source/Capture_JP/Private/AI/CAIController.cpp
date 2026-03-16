@@ -2,13 +2,17 @@
 
 
 #include "AI/CAIController.h"
+
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISenseConfig_Sight.h"
-#include "GenericTeamAgentInterface.h"
+
 #include "BehaviorTree/BlackboardComponent.h"
+#include "BehaviorTree/BehaviorTreeComponent.h"
+
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemInterface.h"
 #include "Ability/CGameplayTypes.h"
+#include "AbilitySystemBlueprintLibrary.h"
 
 ACAIController::ACAIController()
 {
@@ -39,6 +43,12 @@ void ACAIController::OnPossess(APawn* NewPawn)
 	if (PawnTeamInterface)
 	{
 		PawnTeamInterface->SetGenericTeamId(GetGenericTeamId());
+	}
+
+	UAbilitySystemComponent* PawnASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(NewPawn);
+	if (PawnASC)
+	{
+		PawnASC->RegisterGameplayTagEvent(TAG_STAT_Dead).AddUObject(this, &ACAIController::PawnDeathTagUpdated);
 	}
 }
 
@@ -96,6 +106,7 @@ void ACAIController::TargetForgotten(AActor* ForgottenTarget)
 	if (GetCurrentTarget() == ForgottenTarget)
 	{
 		SetCurrentTarget(GetNextTarget());
+		GetBlackboardComponent()->SetValueAsVector(LastSeenLocationName, ForgottenTarget->GetActorLocation());
 	}
 }
 
@@ -151,5 +162,51 @@ void ACAIController::ForgetActorImmediatleyIfInvisible(const AActor* TargetActor
 		{
 			Stimuli.SetStimulusAge(TNumericLimits<float>::Max());
 		}
+	}
+}
+
+void ACAIController::DisableAndClearPerceptions()
+{
+	for (auto PerceptionConfigIter = AIPerceptionComponent->GetSensesConfigIterator();
+		PerceptionConfigIter;
+		++PerceptionConfigIter)
+	{
+		AIPerceptionComponent->SetSenseEnabled((*PerceptionConfigIter)->GetSenseImplementation(), false);
+	}
+
+	for (auto TargetPerceptualData = AIPerceptionComponent->GetPerceptualDataIterator();
+		TargetPerceptualData;
+		++TargetPerceptualData)
+	{
+		for (FAIStimulus& Stimuli : TargetPerceptualData->Value.LastSensedStimuli)
+		{
+			Stimuli.SetStimulusAge(TNumericLimits<float>::Max());
+		}
+	}
+
+	SetCurrentTarget(nullptr);
+}
+
+void ACAIController::EnablePerceptions()
+{
+	for (auto PerceptionConfigIter = AIPerceptionComponent->GetSensesConfigIterator(); 
+		PerceptionConfigIter; 
+		++PerceptionConfigIter)
+	{
+		AIPerceptionComponent->SetSenseEnabled((*PerceptionConfigIter)->GetSenseImplementation(), true);
+	}
+}
+
+void ACAIController::PawnDeathTagUpdated(const FGameplayTag Tag, int32 NewCount)
+{
+	if (NewCount != 0)
+	{
+		GetBrainComponent()->StopLogic("Dead");
+		DisableAndClearPerceptions();
+	}
+	else
+	{
+		EnablePerceptions();
+		GetBrainComponent()->StartLogic();
 	}
 }

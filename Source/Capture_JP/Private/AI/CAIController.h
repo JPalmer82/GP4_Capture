@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "AIController.h"
 #include "Perception/AIPerceptionTypes.h"
+#include "GameplayTagContainer.h"
 #include "CAIController.generated.h"
 
 /**
@@ -27,6 +28,9 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Perception")
 	FName TargetBlackboardKeyName = "Target";
 
+	UPROPERTY(EditDefaultsOnly, Category = "Perception")
+	FName LastSeenLocationName = "LastSeenLocation";
+
 	UPROPERTY(VisibleDefaultsOnly, Category = "Perception")
 	class UAIPerceptionComponent* AIPerceptionComponent;
 
@@ -46,4 +50,8 @@ private:
 	AActor* GetNextTarget() const;
 
 	void ForgetActorImmediatleyIfInvisible(const AActor* TargetActor);
+
+	void DisableAndClearPerceptions();
+	void EnablePerceptions();
+	void PawnDeathTagUpdated(const FGameplayTag Tag, int32 NewCount);
 };
