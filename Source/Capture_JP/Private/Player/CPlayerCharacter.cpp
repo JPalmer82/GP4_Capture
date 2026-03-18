@@ -9,6 +9,8 @@
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
 
+#include "GameFramework/CharacterMovementComponent.h"
+
 #include "GameFramework/SpringArmComponent.h"
 
 #include "GameFramework/PlayerController.h"
@@ -107,4 +109,10 @@ void ACPlayerCharacter::OnDead()
 void ACPlayerCharacter::OnRespawn()
 {
 
+}
+
+void ACPlayerCharacter::AimStateChanged(bool bNewIsAiming)
+{
+	GetCharacterMovement()->bOrientRotationToMovement = !bNewIsAiming;
+	bUseControllerRotationYaw = bNewIsAiming;
 }

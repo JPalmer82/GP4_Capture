@@ -99,6 +99,7 @@ UAbilitySystemComponent* ACCharacter::GetAbilitySystemComponent() const
 void ACCharacter::BindGameplayTagChangeEvents()
 {
 	GetAbilitySystemComponent()->RegisterGameplayTagEvent(TAG_STAT_Dead).AddUObject(this, &ACCharacter::DeathTagChanged);
+	GetAbilitySystemComponent()->RegisterGameplayTagEvent(TAG_STAT_Aiming).AddUObject(this, &ACCharacter::AimTagChanged);
 }
 
 void ACCharacter::DeathTagChanged(const FGameplayTag Tag, int32 NewCount)
@@ -111,6 +112,16 @@ void ACCharacter::DeathTagChanged(const FGameplayTag Tag, int32 NewCount)
 	{
 		Respawn();
 	}
+}
+
+void ACCharacter::AimTagChanged(const FGameplayTag Tag, int32 NewCount)
+{
+	AimStateChanged(NewCount > 0);
+}
+
+void ACCharacter::AimStateChanged(bool bNewIsAiming)
+{
+	//implement in child class
 }
 
 bool ACCharacter::IsCharacterDead() const

@@ -53,6 +53,8 @@ private:
 	void BindGameplayTagChangeEvents();
 
 	void DeathTagChanged(const FGameplayTag Tag, int32 NewCount);
+	void AimTagChanged(const FGameplayTag Tag, int32 NewCount);
+	virtual void AimStateChanged(bool bNewIsAiming);
 
 	/************************************/
 	/*			Death and Respawn		*/

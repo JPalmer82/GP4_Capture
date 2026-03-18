@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
+#include "GameplayTagContainer.h"
 #include "CAnimInstance.generated.h"
 
 /**
@@ -33,6 +34,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Animation", meta = (BlueprintThreadSafe))
 	FORCEINLINE bool IsOnGround() const { return !bIsFalling; }
 
+	UFUNCTION(BlueprintCallable, Category = "Animation", meta = (BlueprintThreadSafe))
+	bool ShouldDoFullBody() const;
+
 private:
 
 	UPROPERTY()
@@ -45,6 +49,12 @@ private:
 	float Speed;
 
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess))
+	float ForwardSpeed;
+
+	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess))
+	float RightSpeed;
+
+	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess))
 	bool bIsFalling;
 
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess))
@@ -53,8 +63,13 @@ private:
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess))
 	float SmoothedYawSpeed;
 
+	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess))
+	bool bIsAiming;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Animation")
 	float SmoothYawSpeedLerpRate = 4.0f;
 
 	FRotator PrevBodyRotation;
+
+	void OnAimTagChanged(const FGameplayTag Tag, int32 NewCount);
 };

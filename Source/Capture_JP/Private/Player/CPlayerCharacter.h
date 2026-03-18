@@ -58,4 +58,5 @@ private:
 
 	virtual void OnDead() override;
 	virtual void OnRespawn() override;
+	virtual void AimStateChanged(bool bNewIsAiming) override;
 };

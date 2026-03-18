@@ -5,6 +5,9 @@
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Ability/CGameplayTypes.h"
+#include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystemComponent.h"
 
 void UCAnimInstance::NativeInitializeAnimation()
 {
@@ -14,6 +17,12 @@ void UCAnimInstance::NativeInitializeAnimation()
 	{
 		OwnerCharacterMovementComponent = OwnerCharacter->GetCharacterMovement();
 	}
+
+	UAbilitySystemComponent* OwnerASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TryGetPawnOwner());
+	if (OwnerASC)
+	{
+		OwnerASC->RegisterGameplayTagEvent(TAG_STAT_Aiming).AddUObject(this, &UCAnimInstance::OnAimTagChanged);
+	}
 }
 
 void UCAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
@@ -21,7 +30,8 @@ void UCAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	Super::NativeUpdateAnimation(DeltaSeconds);
 	if (OwnerCharacter)
 	{
-		Speed = OwnerCharacter->GetVelocity().Length();
+		FVector Velocity = OwnerCharacter->GetVelocity();
+		Speed = Velocity.Length();
 
 		FRotator BodyRotation = OwnerCharacter->GetActorRotation();
 
@@ -31,10 +41,27 @@ void UCAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 		YawSpeed = RotationDelta.Yaw / DeltaSeconds;
 		SmoothedYawSpeed = UKismetMathLibrary::FInterpTo(SmoothedYawSpeed, YawSpeed, DeltaSeconds, SmoothYawSpeedLerpRate);
+
+		FRotator BaseAimRotation = OwnerCharacter->GetBaseAimRotation();
+		FVector AimRightDir = BaseAimRotation.Quaternion().GetRightVector();
+		FVector AimForwardDir = AimRightDir.Cross(FVector::UpVector);
+
+		ForwardSpeed = Velocity.Dot(AimForwardDir);
+		RightSpeed = Velocity.Dot(AimRightDir);
 	}
 
 	if (OwnerCharacterMovementComponent)
 	{
 		bIsFalling = OwnerCharacterMovementComponent->IsFalling();
 	}
+}
+
+bool UCAnimInstance::ShouldDoFullBody() const
+{
+	return IsNotMoving() && !bIsAiming;
+}
+
+void UCAnimInstance::OnAimTagChanged(const FGameplayTag Tag, int32 NewCount)
+{
+	bIsAiming = NewCount > 0;
 }
