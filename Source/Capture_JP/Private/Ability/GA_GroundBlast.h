@@ -27,6 +27,21 @@ public:
 	) override;
 
 private:
+	UPROPERTY(EditDefaultsOnly, Category = "Targeting")
+	float TargetMaxDistance = 2000.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Targeting")
+	float TargetingAreaRadius = 300.0f;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Animation")
 	UAnimMontage* TargetingMontage;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Targeting")
+	TSubclassOf<class ATA_GroundPick> GroundPickTargetActorClass;
+
+	UFUNCTION()
+	void TargetReceived(const FGameplayAbilityTargetDataHandle& TargetDataHandle);
+
+	UFUNCTION()
+	void TargetCancelled(const FGameplayAbilityTargetDataHandle& TargetDataHandle);
 };

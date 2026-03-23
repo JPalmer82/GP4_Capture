@@ -115,4 +115,31 @@ void ACPlayerCharacter::AimStateChanged(bool bNewIsAiming)
 {
 	GetCharacterMovement()->bOrientRotationToMovement = !bNewIsAiming;
 	bUseControllerRotationYaw = bNewIsAiming;
+
+	if (GetController() && GetController()->IsLocalPlayerController())
+	{
+		FVector CameraOffsetGoal = bNewIsAiming ? CameraAimLocalOffset : FVector::ZeroVector;
+		GetWorldTimerManager().ClearTimer(CameraLerpTimerHandle);
+		CameraLerpTimerHandle = GetWorldTimerManager().SetTimerForNextTick(
+			FTimerDelegate::CreateUObject(this, &ACPlayerCharacter::UpdateCameraLocalOffset, CameraOffsetGoal)
+		);
+	}
+}
+
+void ACPlayerCharacter::UpdateCameraLocalOffset(FVector Goal)
+{
+	if (FVector::Dist(ViewCamera->GetRelativeLocation(), Goal) < 0.1f)
+	{
+		ViewCamera->SetRelativeLocation(Goal);
+		return;
+	}
+
+	float LerpAlpha = CameraAimLerpingSpeed * GetWorld()->GetDeltaSeconds();
+
+	FVector NewRelativeLocation = FMath::Lerp(ViewCamera->GetRelativeLocation(), Goal, LerpAlpha);
+
+	ViewCamera->SetRelativeLocation(NewRelativeLocation);
+	CameraLerpTimerHandle = GetWorldTimerManager().SetTimerForNextTick(
+		FTimerDelegate::CreateUObject(this, &ACPlayerCharacter::UpdateCameraLocalOffset, Goal)
+	);
 }
