@@ -19,7 +19,8 @@ public:
 	virtual void ConfirmTargetingAndContinue() override;
 	FORCEINLINE void AddTargetingAttitude(ETeamAttitude::Type NewAttitude) { TargetingWithAttitudes.AddUnique(NewAttitude); }
 	FORCEINLINE void SetTargetMaxDistance(float NewTargetMaxDistance) { TargetMaxDistance = NewTargetMaxDistance;  }
-	FORCEINLINE void SetTargetAreaRadius(float NewTargetingAreaRadius) { TargetingAreaRadius = NewTargetingAreaRadius; }
+	void SetTargetAreaRadius(float NewTargetingAreaRadius);
+	FORCEINLINE void SetShouldDrawDebugRange(bool bNewShouldDrawDebugRange) { bShouldDrawDebugRange = bNewShouldDrawDebugRange; }
 
 	bool IsTargetValidForAttitudes(const AActor& TargetCandidate);
 
@@ -29,6 +30,12 @@ protected:
 private:
 	FVector TargetingLocation;
 	void TraceTargetingLocation();
+
+	UPROPERTY(EditDefaultsOnly, Category = "Visual")
+	class UDecalComponent* DecalComponent;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Targeting")
+	bool bShouldDrawDebugRange;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Targeting")
 	float TargetMaxDistance = 2000.0f;

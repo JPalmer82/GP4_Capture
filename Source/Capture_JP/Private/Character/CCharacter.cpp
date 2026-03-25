@@ -3,9 +3,14 @@
 
 #include "Character/CCharacter.h"
 
+#include "AIController.h"
+#include "BrainComponent.h"
+
 #include "Ability/CAbilitySystemComponent.h"
 #include "Ability/CAttributeSet.h"
 #include "Ability/CGameplayTypes.h"
+
+#include "Capture_JP/Capture_JP.h"
 
 #include "Components/CapsuleComponent.h"
 #include "Components/WidgetComponent.h"
@@ -33,7 +38,7 @@ ACCharacter::ACCharacter()
 	CAttributeSet = CreateDefaultSubobject<UCAttributeSet>("CAttributeSet");
 
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_SpringArm, ECR_Ignore);
 
 	OverheadWidgetComponent = CreateDefaultSubobject<UWidgetComponent>("OverheadWidgetComponent");
 	OverheadWidgetComponent->SetupAttachment(GetRootComponent());
@@ -100,6 +105,7 @@ void ACCharacter::BindGameplayTagChangeEvents()
 {
 	GetAbilitySystemComponent()->RegisterGameplayTagEvent(TAG_STAT_Dead).AddUObject(this, &ACCharacter::DeathTagChanged);
 	GetAbilitySystemComponent()->RegisterGameplayTagEvent(TAG_STAT_Aiming).AddUObject(this, &ACCharacter::AimTagChanged);
+	GetAbilitySystemComponent()->RegisterGameplayTagEvent(TAG_STAT_Stun).AddUObject(this, &ACCharacter::StunTagChanged);
 }
 
 void ACCharacter::DeathTagChanged(const FGameplayTag Tag, int32 NewCount)
@@ -112,6 +118,32 @@ void ACCharacter::DeathTagChanged(const FGameplayTag Tag, int32 NewCount)
 	{
 		Respawn();
 	}
+}
+
+void ACCharacter::StunTagChanged(const FGameplayTag Tag, int32 NewCount)
+{
+	if (NewCount != 0)
+	{
+		CAbilitySystemComponent->CancelAllAbilities();
+		PlayAnimMontage(StunMontage);
+		if (AAIController* AIC = GetController<AAIController>())
+		{
+			if (!IsCharacterDead())
+			{
+				AIC->GetBrainComponent()->StopLogic("Stunned");
+			}
+		}
+	}
+	else
+	{
+		StopAnimMontage(StunMontage);
+		if (AAIController* AIC = GetController<AAIController>())
+		{
+			AIC->GetBrainComponent()->StartLogic();
+		}
+	}
+
+	OnStunStatChanged(NewCount != 0);
 }
 
 void ACCharacter::AimTagChanged(const FGameplayTag Tag, int32 NewCount)
@@ -191,6 +223,11 @@ void ACCharacter::DeathAnimationFinished()
 	{
 		SetEnableRagdoll(true);
 	}
+}
+
+void ACCharacter::OnStunStatChanged(bool bNewIsStunned)
+{
+	
 }
 
 void ACCharacter::InitializeOverheadWidget()

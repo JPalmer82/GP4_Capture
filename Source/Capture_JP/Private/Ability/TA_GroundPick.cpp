@@ -5,10 +5,15 @@
 #include "Engine/OverlapResult.h"
 #include "Abilities/GameplayAbility.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "Capture_JP/Capture_JP.h"
+#include "Components/DecalComponent.h"
 
 ATA_GroundPick::ATA_GroundPick()
 {
 	PrimaryActorTick.bCanEverTick = true;
+	SetRootComponent(CreateDefaultSubobject<USceneComponent>("Root Comp"));
+	DecalComponent = CreateDefaultSubobject<UDecalComponent>("Decal Component");
+	DecalComponent->SetupAttachment(GetRootComponent());
 }
 
 void ATA_GroundPick::ConfirmTargetingAndContinue()
@@ -36,7 +41,18 @@ void ATA_GroundPick::ConfirmTargetingAndContinue()
 		Targets.Add(OverlapResult.GetActor());
 	}
 
-	TargetDataReadyDelegate.Broadcast(UAbilitySystemBlueprintLibrary::AbilityTargetDataFromActorArray(Targets.Array(), false));
+	FGameplayAbilityTargetDataHandle TargetDataHandle = UAbilitySystemBlueprintLibrary::AbilityTargetDataFromActorArray(Targets.Array(), false);
+	FGameplayAbilityTargetData_SingleTargetHit* BlastLocationTargetData = new FGameplayAbilityTargetData_SingleTargetHit;
+	BlastLocationTargetData->HitResult.ImpactPoint = GetActorLocation();
+	TargetDataHandle.Add(BlastLocationTargetData);
+
+	TargetDataReadyDelegate.Broadcast(TargetDataHandle);
+}
+
+void ATA_GroundPick::SetTargetAreaRadius(float NewTargetingAreaRadius)
+{
+	TargetingAreaRadius = NewTargetingAreaRadius;
+	DecalComponent->DecalSize = FVector{ NewTargetingAreaRadius };
 }
 
 bool ATA_GroundPick::IsTargetValidForAttitudes(const AActor& TargetCandidate)
@@ -66,6 +82,11 @@ void ATA_GroundPick::Tick(float DeltaSeconds)
 
 void ATA_GroundPick::TraceTargetingLocation()
 {
+	if (bShouldDrawDebugRange)
+	{
+		DrawDebugSphere(GetWorld(), GetActorLocation(), TargetingAreaRadius, 12, FColor::Red);
+	}
+
 	TargetingLocation = GetActorLocation();
 
 	if (!PrimaryPC)
@@ -82,7 +103,7 @@ void ATA_GroundPick::TraceTargetingLocation()
 
 	FHitResult TraceResult;
 
-	GetWorld()->LineTraceSingleByChannel(TraceResult, PlayerViewLocation, TargetEnd, ECC_Visibility);
+	GetWorld()->LineTraceSingleByChannel(TraceResult, PlayerViewLocation, TargetEnd, ECC_Targeting);
 
 	if (!TraceResult.bBlockingHit)
 	{

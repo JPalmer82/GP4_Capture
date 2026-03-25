@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Ability/CGameplayAbility.h"
 #include "Abilities/GameplayAbilityTypes.h"
+#include "GameplayTagContainer.h"
 #include "GA_GroundBlast.generated.h"
 
 /**
@@ -27,6 +28,12 @@ public:
 	) override;
 
 private:
+	UPROPERTY(EditDefaultsOnly, Category = GameplayCue, meta = (Categories = "GameplayCue"))
+	FGameplayTagContainer GameplayCuesToTrigger;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Damage")
+	TSubclassOf<UGameplayEffect> DamageEffect;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Targeting")
 	float TargetMaxDistance = 2000.0f;
 

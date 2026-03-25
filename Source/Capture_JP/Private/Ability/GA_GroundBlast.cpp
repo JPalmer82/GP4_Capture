@@ -7,6 +7,7 @@
 #include "Abilities/Tasks/AbilityTask_WaitTargetData.h"
 #include "Ability/TA_GroundPick.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystemComponent.h"
 
 UGA_GroundBlast::UGA_GroundBlast()
 {
@@ -54,6 +55,7 @@ void UGA_GroundBlast::ActivateAbility(const FGameplayAbilitySpecHandle Handle, c
 		GroundPickTargetActor->SetTargetMaxDistance(TargetMaxDistance);
 		GroundPickTargetActor->SetTargetAreaRadius(TargetingAreaRadius);
 		GroundPickTargetActor->AddTargetingAttitude(ETeamAttitude::Hostile);
+		GroundPickTargetActor->SetShouldDrawDebugRange(bShouldDrawDebug);
 	}
 
 	WaitTargetDataTask->FinishSpawningActor(this, TargetActor);
@@ -61,11 +63,22 @@ void UGA_GroundBlast::ActivateAbility(const FGameplayAbilitySpecHandle Handle, c
 
 void UGA_GroundBlast::TargetReceived(const FGameplayAbilityTargetDataHandle& TargetDataHandle)
 {
-	for (const AActor* Target : UAbilitySystemBlueprintLibrary::GetAllActorsFromTargetData(TargetDataHandle))
+	BP_ApplyGameplayEffectToTarget(
+		TargetDataHandle, 
+		DamageEffect, 
+		GetAbilityLevel(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo()));
+
+	FHitResult BlastHitResult = UAbilitySystemBlueprintLibrary::GetHitResultFromTargetData(TargetDataHandle, 1);
+
+	FGameplayCueParameters CueParam;
+	CueParam.Location = BlastHitResult.ImpactPoint;
+	CueParam.RawMagnitude = TargetingAreaRadius;
+
+	for (const FGameplayTag& CueTag : GameplayCuesToTrigger)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Found Target: %s"), *(Target->GetName()))
+		GetAbilitySystemComponentFromActorInfo()->ExecuteGameplayCue(CueTag, CueParam);
 	}
-	UE_LOG(LogTemp, Warning, TEXT("Target Receieved"))
+
 	K2_EndAbility();
 }
 

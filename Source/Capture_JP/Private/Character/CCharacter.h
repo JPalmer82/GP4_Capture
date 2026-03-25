@@ -53,6 +53,7 @@ private:
 	void BindGameplayTagChangeEvents();
 
 	void DeathTagChanged(const FGameplayTag Tag, int32 NewCount);
+	void StunTagChanged(const FGameplayTag Tag, int32 NewCount);
 	void AimTagChanged(const FGameplayTag Tag, int32 NewCount);
 	virtual void AimStateChanged(bool bNewIsAiming);
 
@@ -83,6 +84,15 @@ private:
 	float DeathAnimationDurationOffset = -0.5f;
 
 	void DeathAnimationFinished();
+
+	/************************************/
+	/*			Stunning				*/
+	/************************************/
+private:
+	virtual void OnStunStatChanged(bool bNewIsStunned);
+
+	UPROPERTY(EditDefaultsOnly, Category = "Stun")
+	UAnimMontage* StunMontage;
 
 	/************************************/
 	/*				UI					*/

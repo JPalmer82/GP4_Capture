@@ -34,12 +34,22 @@ private:
 public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	UPROPERTY()
+	class UEnhancedInputLocalPlayerSubsystem* EnhancedInputSubsystem;
+
 private:
+
+	virtual void OnStunStatChanged(bool bNewStunStatChanged) override;
+	void SetGameplayInputEnabled(bool bGameplayInputEnabled);
+
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TMap<ECAbilityInputID, class UInputAction*> AbilityInputMap;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	class UInputMappingContext* GameplayInputMappingContext;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	class UInputMappingContext* StaticInputMappingContext;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	class UInputAction* JumpInputAction;

@@ -15,11 +15,14 @@
 
 #include "GameFramework/PlayerController.h"
 
+#include "Capture_JP/Capture_JP.h"
+
 ACPlayerCharacter::ACPlayerCharacter()
 {
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>("Camera Boom");
 	CameraBoom->SetupAttachment(GetRootComponent());
 	CameraBoom->TargetArmLength = 800.f;
+	CameraBoom->ProbeChannel = ECC_SpringArm;
 	CameraBoom->bUsePawnControlRotation = true;
 
 	ViewCamera = CreateDefaultSubobject<UCameraComponent>("View Camera");
@@ -32,11 +35,12 @@ void ACPlayerCharacter::PawnClientRestart()
 	APlayerController* PlayerController = GetController<APlayerController>();
 	if (IsValid(PlayerController)) 
 	{
-		UEnhancedInputLocalPlayerSubsystem* EnhancedInputSubsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer());
+		EnhancedInputSubsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer());
 		if (EnhancedInputSubsystem)
 		{
 			EnhancedInputSubsystem->ClearAllMappings();
 			EnhancedInputSubsystem->AddMappingContext(GameplayInputMappingContext, 0);
+			EnhancedInputSubsystem->AddMappingContext(StaticInputMappingContext, 1);
 		}
 	}
 }
@@ -60,6 +64,26 @@ void ACPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 				&ACPlayerCharacter::HandleAbilityInput,
 				AbilityInputPair.Key
 			);
+		}
+	}
+}
+
+void ACPlayerCharacter::OnStunStatChanged(bool bNewStunStatChanged)
+{
+	if (!IsCharacterDead())
+	{
+		SetGameplayInputEnabled(!bNewStunStatChanged);
+	}
+}
+
+void ACPlayerCharacter::SetGameplayInputEnabled(bool bGameplayInputEnabled)
+{
+	if (EnhancedInputSubsystem)
+	{
+		EnhancedInputSubsystem->RemoveMappingContext(GameplayInputMappingContext);
+		if (bGameplayInputEnabled)
+		{
+			EnhancedInputSubsystem->AddMappingContext(GameplayInputMappingContext, 0);
 		}
 	}
 }
@@ -108,7 +132,7 @@ void ACPlayerCharacter::OnDead()
 
 void ACPlayerCharacter::OnRespawn()
 {
-
+	SetGameplayInputEnabled(true);
 }
 
 void ACPlayerCharacter::AimStateChanged(bool bNewIsAiming)
