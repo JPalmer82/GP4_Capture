@@ -22,6 +22,8 @@ public:
 	void AuthApplyGameplayEffect(const TSubclassOf<UGameplayEffect>& EffectToApply);
 	void ApplyFullStatEffect();
 
+	FORCEINLINE const TMap<ECAbilityInputID, TSubclassOf<UGameplayAbility>>& GetAbilities() const { return Abilities; }
+
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "GameplayEffects")
 	TSubclassOf<UGameplayEffect> DeathEffect;

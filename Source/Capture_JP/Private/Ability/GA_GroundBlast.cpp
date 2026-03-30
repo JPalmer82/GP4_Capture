@@ -63,10 +63,19 @@ void UGA_GroundBlast::ActivateAbility(const FGameplayAbilitySpecHandle Handle, c
 
 void UGA_GroundBlast::TargetReceived(const FGameplayAbilityTargetDataHandle& TargetDataHandle)
 {
-	BP_ApplyGameplayEffectToTarget(
-		TargetDataHandle, 
-		DamageEffect, 
-		GetAbilityLevel(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo()));
+	if (!K2_CommitAbility())
+	{
+		K2_EndAbility();
+		return;
+	}
+
+	if (K2_HasAuthority())
+	{
+		BP_ApplyGameplayEffectToTarget(
+			TargetDataHandle, 
+			DamageEffect, 
+			GetAbilityLevel(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo()));
+	}
 
 	FHitResult BlastHitResult = UAbilitySystemBlueprintLibrary::GetHitResultFromTargetData(TargetDataHandle, 1);
 

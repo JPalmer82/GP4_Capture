@@ -9,6 +9,8 @@
 #include "Ability/CAbilitySystemComponent.h"
 #include "Ability/CAttributeSet.h"
 #include "Ability/CGameplayTypes.h"
+#include "Ability/CAbilityInputID.h"
+#include "Abilities/GameplayAbility.h"
 
 #include "Capture_JP/Capture_JP.h"
 
@@ -267,5 +269,10 @@ void ACCharacter::SetPerceptionStimuliEnabled(bool bStimuliEnabled)
 	{
 		PerceptionStimulusComponent->UnregisterFromPerceptionSystem();
 	}
+}
+
+const TMap<ECAbilityInputID, TSubclassOf<UGameplayAbility>>& ACCharacter::GetAbilities() const
+{
+	return CAbilitySystemComponent->GetAbilities();
 }
 

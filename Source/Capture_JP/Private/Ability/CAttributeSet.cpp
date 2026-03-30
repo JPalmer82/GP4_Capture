@@ -37,7 +37,7 @@ void UCAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackD
 
 	if (Data.EvaluatedData.Attribute == GetManaAttribute())
 	{
-		SetHealth(FMath::Clamp(GetMana(), 0.0f, GetMaxMana()));
+		SetMana(FMath::Clamp(GetMana(), 0.0f, GetMaxMana()));
 	}
 }
 

@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "GameplayTagContainer.h"
+#include "Ability/CAbilityInputID.h"
 
 #include "GenericTeamAgentInterface.h"
 
@@ -42,6 +43,7 @@ public:
 	/************************************/
 
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	const TMap<ECAbilityInputID, TSubclassOf<class UGameplayAbility>>& GetAbilities() const;
 
 private:
 	UPROPERTY(VisibleDefaultsOnly, Category = "Gameplay Ability")
