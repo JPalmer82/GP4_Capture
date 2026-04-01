@@ -53,4 +53,18 @@ private:
 
 	UPROPERTY()
 	const class UGameplayAbility* AbilityCDO;
+
+	void AbilityCommitted(class UGameplayAbility* Ability);
+
+	float CachedCooldownDuration;
+	float CachedCooldownTimeRemaining;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Cooldown")
+	float CooldownUpdateInterval = 0.1f;
+
+	FTimerHandle CooldownUpdateTimerHandle;
+	FTimerHandle CooldownDurationTimerHandle;
+
+	void CooldownFinished();
+	void UpdateCooldown();
 };
