@@ -3,7 +3,13 @@
 
 #include "Framework/CGameMode.h"
 #include "GameFramework/PlayerStart.h"
+#include "Framework/CGameSession.h"
 #include "EngineUtils.h"
+
+ACGameMode::ACGameMode()
+{
+	GameSessionClass = ACGameSession::StaticClass();
+}
 
 APlayerController* ACGameMode::SpawnPlayerController(ENetRole InRemoteRole, const FString& Options)
 {
