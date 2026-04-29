@@ -16,9 +16,29 @@ void UMainMenuWidget::NativeConstruct()
 	{
 		//...
 		CGameInstance->OnLoginCompleted.AddUObject(this, &UMainMenuWidget::LoginCompleted);
+		if (CGameInstance->IsClientLoggedIn())
+		{
+			LoginCompleted(true, CGameInstance->GetPlayerNickName());
+		}
 	}
 
 	LoginButton->OnClicked.AddDynamic(this, &UMainMenuWidget::LoginButtonClicked);
+
+	MatchMakingWidget->GetNewSessionButtonClickedEvent().AddDynamic(this, &UMainMenuWidget::WaitForNewSessionCreate);
+	MatchMakingWidget->GetFindAndJoinSessionButtonClickedEvent().AddDynamic(this, &UMainMenuWidget::WaitForFindAndJoinSession);
+}
+
+FReply UMainMenuWidget::NativeOnFocusReceived(const FGeometry& InGeometry, const FFocusEvent& InFocusEvent)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Focus added to path"))
+	UWidget* ActiveWidget = MainSwitcher->GetActiveWidget();
+	if (ActiveWidget)
+	{
+		ActiveWidget->SetKeyboardFocus();
+		return FReply::Handled();
+	}
+
+	return Super::NativeOnFocusReceived(InGeometry, InFocusEvent);
 }
 
 void UMainMenuWidget::LoginButtonClicked()
@@ -38,4 +58,26 @@ void UMainMenuWidget::LoginCompleted(bool bWasSuccessful, const FString& PlayerN
 		MainSwitcher->SetActiveWidget(MatchMakingWidget);
 		MatchMakingWidget->SetKeyboardFocus();
 	}
+}
+
+void UMainMenuWidget::WaitForNewSessionCreate()
+{
+	MainSwitcher->SetActiveWidget(WaitingWidget);
+	WaitingWidget->ConfigureWaiting("Creating Session", true);
+	WaitingWidget->ClearAndGetButtonClickedDelegate().AddDynamic(this, &UMainMenuWidget::BackToMatchMaking);
+	WaitingWidget->SetKeyboardFocus();
+}
+
+void UMainMenuWidget::WaitForFindAndJoinSession()
+{
+	MainSwitcher->SetActiveWidget(WaitingWidget);
+	WaitingWidget->ConfigureWaiting("Finding Sessions", true);
+	WaitingWidget->ClearAndGetButtonClickedDelegate().AddDynamic(this, &UMainMenuWidget::BackToMatchMaking);
+	WaitingWidget->SetKeyboardFocus();
+}
+
+void UMainMenuWidget::BackToMatchMaking()
+{
+	MainSwitcher->SetActiveWidget(MatchMakingWidget);
+	MatchMakingWidget->SetKeyboardFocus();
 }

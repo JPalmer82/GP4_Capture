@@ -21,6 +21,8 @@ void ACPlayerController::OnPossess(APawn* NewPawn)
 void ACPlayerController::AcknowledgePossession(APawn* NewPawn)
 {
 	Super::AcknowledgePossession(NewPawn);
+
+	SetInputMode(FInputModeGameAndUI());
 	CPlayerCharacter = Cast<ACPlayerCharacter>(NewPawn);
 	if (CPlayerCharacter)
 	{

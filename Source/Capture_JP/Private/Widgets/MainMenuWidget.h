@@ -17,6 +17,8 @@ class UMainMenuWidget : public UUserWidget
 public:
 	virtual void NativeConstruct() override;
 
+	virtual FReply NativeOnFocusReceived(const FGeometry& InGeometry, const FFocusEvent& InFocusEvent) override;
+
 private:
 	UPROPERTY(meta = (BindWidget))
 	class UWidgetSwitcher* MainSwitcher;
@@ -37,4 +39,13 @@ private:
 	class UMatchMakingWidget* MatchMakingWidget;
 	
 	void LoginCompleted(bool bWasSuccessful, const FString& PlayerNickname);
+
+	UFUNCTION()
+	void WaitForNewSessionCreate();
+
+	UFUNCTION()
+	void WaitForFindAndJoinSession();
+
+	UFUNCTION()
+	void BackToMatchMaking();
 };

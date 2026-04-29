@@ -3,7 +3,7 @@
 
 #include "AI/BTTask_GetNextPatrolPoint.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
-#include "AiController.h"
+#include "AIController.h"
 #include "AI/PatrollingComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
 

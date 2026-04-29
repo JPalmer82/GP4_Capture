@@ -5,6 +5,9 @@
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
 #include "OnlineSubsystem.h"
+#include "Interfaces/IHttpRequest.h"
+#include "Interfaces/IHttpResponse.h"
+#include "Interfaces/OnlineSessionInterface.h"
 #include "CGameInstance.generated.h"
 
 
@@ -78,9 +81,49 @@ private:
 	/************************************/
 
 public:
+	bool IsClientLoggedIn() const;
 	void ClientAuthPortalLogin();
+	FString GetPlayerNickName() const;
 
 	FOnLoginCompletedDelegate OnLoginCompleted;
+
+	void RequestCreateNewSession();
+	void TryFindAndJoinSession();
+
+	FName GetCoordinatorURLKey() const;
+	FString GetCoordinatorURL() const;
+	FString GetDefaultCoordinatorURL() const;
+	void StartFindingAndJoinSession(FGuid SessionSearchID=FGuid());
+
 private:
 	void ClientLoginCompleted(int LocalPlayerNumber, bool bWasSuccessful, const FUniqueNetId& UserID, const FString& ErrorMsg);
+
+	void SessionCreationRequestCompleted(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful, FGuid SessionSearchID);
+
+	UPROPERTY(EditDefaultsOnly, Category = "Session Search")
+	float SessionSearchInterval = 1.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Session Search")
+	float SessionSearchTimeoutDuration = 60.0f;
+
+	// the setting for the search
+	TSharedPtr<class FOnlineSessionSearch> SessionSearch;
+
+	void FindAndJoinSession(FGuid SessionSearchID = FGuid());
+
+	void FindSessionCompleted(bool bWasSuccessful);
+
+	void JoinSessionWithSearchResult(const class FOnlineSessionSearchResult& SearchResult);
+
+	void JoinSessionCompleted(FName SessionName, EOnJoinSessionCompleteResult::Type JoinResult, int Port);
+
+	FString GetTestingURL();
+	FName GetTestingURLKey();
+
+	void ReplacePort(FString& OutURL, int NewPort);
+
+	void StopSessionSearches();
+
+	FTimerHandle FindSessionTimerHandle;
+	FTimerHandle FindSessionTimeoutTimerHandle;
 };
